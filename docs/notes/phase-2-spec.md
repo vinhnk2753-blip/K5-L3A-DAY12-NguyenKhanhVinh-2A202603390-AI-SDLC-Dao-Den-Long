@@ -12,6 +12,7 @@
 | Tỏa Sáng (Pulse) | Khoảng cách XZ ≤ 5 m | Khoảng cách **3D** từ `(x, y + 0.8, z)` tới tâm Bóng Mực ≤ 5 m | Cập nhật công thức khoảng cách; regression Đêm 1 vẫn đạt |
 | Trạng thái Bóng Mực | Tự đặt tên (đã dùng 5 tên chuẩn) | Bắt buộc đúng 5 tên: `spawning`, `wander`, `chase`, `recoil`, `stunned` | Đã khớp sẵn từ Phase 1 |
 | Hợp đồng | Contract v1.0 | Contract v1.1 (`night`, `wind`, `vel`, `grounded`, `invuln`, `dash_cd_s`, `pulse_cd_s`, `charm_s`, `motes[].kind/ttl_s`, `drifters`, `charms`, `dash`, `pause`, `night_start`) | Mở rộng test contract & giữ toàn bộ regression Phase 1 |
+| Điểm xuất phát Đêm 3 | Không có ở Phase 1 | Giả định `(0, 0, -18)` trên tầng 0 (vì tâm `(0, 0)` của Đêm 3 là Tầng 2 + Tháp Chuông bán kính 2 m không đứng vào được); scenario có thể ghi đè `player.pos` bất kỳ | Ghi rõ trong spec & dùng nhất quán cho chế độ chơi thường + headless mặc định |
 
 ## 2. Acceptance Criteria — Phần 1, 2, 3 & 4 (Ticket-02)
 

@@ -2,12 +2,12 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { runSimulation } from '../sim/engine.js';
-import type { InputsFile, ScenarioConfig } from '../sim/types.js';
+import type { InputsFile, NightNumber, ScenarioConfig } from '../sim/types.js';
 import { ContractValidationError, validateInputs, validateScenario } from '../sim/validation.js';
 
 interface CliArgs {
   seed: number;
-  night: number;
+  night: NightNumber;
   scenarioPath?: string;
   inputsPath?: string;
   ticks: number;
@@ -69,7 +69,9 @@ function parseArgs(argv: string[]): CliArgs {
 
   if (seed === undefined) throw new Error('Missing required --seed');
   if (night === undefined) throw new Error('Missing required --night');
-  if (night !== 1) throw new Error(`Invalid --night ${night}: Phase 1 supports night 1 only`);
+  if (night !== 1 && night !== 2 && night !== 3) {
+    throw new Error(`Invalid --night ${night}: Contract v1.1 supports nights 1, 2, or 3`);
+  }
   if (ticks === undefined || ticks < 0) throw new Error('Missing or negative --ticks');
   if (!outPath) throw new Error('Missing required --out');
   if (snapshotEvery <= 0) throw new Error('--snapshot-every must be > 0');
