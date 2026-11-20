@@ -297,6 +297,7 @@ export class UiController {
 
     // Interact prompt for nearest unlit lantern in interact_radius (2.0m)
     let nearUnlit = null;
+    let nearDist = Infinity;
     let nearestAnyUnlit = null;
     let nearestDist = Infinity;
     for (const l of snap.lanterns) {
@@ -306,7 +307,8 @@ export class UiController {
         nearestDist = d;
         nearestAnyUnlit = l;
       }
-      if (d <= this.tuning.interact_radius && !nearUnlit) {
+      if (d <= this.tuning.interact_radius && (d < nearDist - 1e-9 || (Math.abs(d - nearDist) <= 1e-9 && nearUnlit !== null && l.id < nearUnlit.id))) {
+        nearDist = d;
         nearUnlit = l;
       }
     }
