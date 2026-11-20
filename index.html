@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đảo Đèn Lồng — Đêm 1: Đảo Bến</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game-canvas"></canvas>
+      <div id="hud" class="hud hidden">
+        <div class="hud-top">
+          <div class="hud-box hud-flames" id="hud-flames"></div>
+          <div class="hud-box hud-timer" id="hud-timer">04:00</div>
+          <div class="hud-box hud-stats">
+            <span id="hud-lanterns">Đèn: 0/5</span>
+            <span class="sep">·</span>
+            <span id="hud-score">Điểm: 0</span>
+          </div>
+        </div>
+        <div class="hud-prompt hidden" id="hud-prompt"></div>
+        <div class="hud-bottom">
+          <div class="hud-box hud-motes">
+            <div class="motes-label" id="hud-motes-label">Đom đóm: 0/10</div>
+            <div class="motes-bar" id="hud-motes-bar"></div>
+          </div>
+          <div class="hud-box hud-skills">
+            <div class="skill-pill" id="hud-pulse">Q · Tỏa Sáng (3)</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="overlay" class="overlay">
+        <div class="card" id="overlay-card">
+          <h1>Đảo Đèn Lồng</h1>
+          <p class="subtitle">Đêm 1 — Đảo Bến</p>
+          <p class="story">
+            Sương đen đã nuốt chửng ánh sáng của Đảo Bến. Hãy cùng Mây thu thập đom đóm,
+            thắp sáng 5 Đèn Lồng Lớn và xua tan Bóng Mực trước bình minh.
+          </p>
+          <div class="controls-grid">
+            <div><kbd>WASD</kbd> Di chuyển</div>
+            <div><kbd>Space</kbd> Nhảy</div>
+            <div><kbd>E</kbd> Nạp ánh sáng</div>
+            <div><kbd>Q</kbd> Tỏa Sáng (tốn 3)</div>
+            <div><kbd>Chuột / ←→</kbd> Xoay camera</div>
+          </div>
+          <button id="btn-start" class="btn-primary">Bắt đầu Đêm 1</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/game/main.ts"></script>
+  </body>
+</html>
