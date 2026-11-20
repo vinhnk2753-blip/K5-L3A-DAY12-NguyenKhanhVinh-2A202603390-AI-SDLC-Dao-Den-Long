@@ -11,6 +11,19 @@ export const CHARM_SPEED = 7.2;
 export const CHARM_DURATION_TICKS = 600;
 export const CHARM_RESPAWN_TICKS = 2700;
 
+export const FUEL_MAX_TICKS = 100 * TICK_RATE;       // 6000 integer 1/60 units
+export const FUEL_LOW_TICKS = 30 * TICK_RATE;        // 1800 integer 1/60 units
+export const FUEL_PER_MOTE_TICKS = 10 * TICK_RATE;   // 600 integer 1/60 units
+export const FUEL_DECAY_PER_TICK = 1;                // 1.0 fuel/s
+export const FUEL_DRAIN_PER_TICK = 5;                // 5.0 fuel/s per draining shade
+export const DRAIN_ENTER_RADIUS = 2.0;
+export const DRAIN_CHASE_RADIUS = 6.0;
+export const DRAIN_EVENT_INTERVAL_TICKS = 60;
+
+export const RELIGHT_SCORE = 40;
+export const DRAIN_STUN_SCORE = 15;
+export const DAWN_LIT_BONUS = 50;
+
 export const MOTE_INITIAL_COUNT = 20;
 export const MOTE_MAX_COUNT = 30;
 export const MOTE_SPAWN_INTERVAL_TICKS = 240;
@@ -44,7 +57,9 @@ export const WIND_PUSH_SPEED = 2.0;
 export const STANDARD_TUNING: TuningConfig = {
   player_speed: 6.0,
   carry_capacity: 10,
+  capacity_max: 20,
   lantern_cost: 10,
+  relight_cost: 5,
   lantern_count_night1: 5,
   pickup_radius: 1.0,
   interact_radius: 2.0,
@@ -53,9 +68,9 @@ export const STANDARD_TUNING: TuningConfig = {
   dash_speed: 14.0,
   dash_duration_s: 0.2,
   dash_cooldown_s: 1.5,
-  night1_duration_s: 300,
-  night2_duration_s: 330,
-  night3_duration_s: 360,
+  night1_duration_s: 240,
+  night2_duration_s: 270,
+  night3_duration_s: 300,
   flames: 3,
   invuln_s: 1.5,
   hit_drop_ratio: 0.5,
@@ -66,11 +81,17 @@ export const STANDARD_TUNING: TuningConfig = {
   shade_speed: 4.0,
   shade_hit_radius: 1.0,
   fall_enabled: true,
+  fuel_max: 100,
+  fuel_decay_per_s: 1.0,
+  fuel_per_mote: 10,
+  win_ratio: 0.6,
+  drain_per_s: 5,
+  low_fuel_threshold: 30,
   score: {
-    per_mote: 10,
+    per_mote: 5,
     per_lantern: 100,
     per_stun: 5,
-    per_second_left: 2,
+    per_second_left: 0,
     per_flame_left: 50
   }
 };
@@ -129,10 +150,10 @@ export const NIGHT_MAPS: Record<NightNumber, NightMapConfig> = {
     night: 1,
     title: 'Đêm 1',
     islandName: 'Đảo Bến',
-    elderQuote: '“Mây ơi, năm ngọn đèn Đảo Bến đã tắt rồi. Con nhớ giữ vững ngọn lửa trong tay, đừng để Bóng Mực lại gần nhé.”',
+    elderQuote: '“Mây ơi, năm ngọn đèn Đảo Bến đã tắt rồi. Đêm nay đèn thắp rồi vẫn cạn dầu dần — hãy giữ ít nhất 3/5 đèn sáng tới bình minh nhé!”',
     durationS: STANDARD_TUNING.night1_duration_s,
     shadeSpeed: 4.0,
-    shadeSpawnIntervalTicks: 480, // 8s
+    shadeSpawnIntervalTicks: 480,
     shadeMaxCount: 6,
     hasDrifters: false,
     hasWind: false,
@@ -155,10 +176,10 @@ export const NIGHT_MAPS: Record<NightNumber, NightMapConfig> = {
     night: 2,
     title: 'Đêm 2',
     islandName: 'Đảo Cau',
-    elderQuote: '“Cầu tre nối hai bờ Đảo Cau không có lan can đâu con. Hãy tận dụng bục nhảy, Bùa Gió giữa cầu và coi chừng Gió Lạc cướp đom đóm!”',
+    elderQuote: '“Cầu tre nối hai bờ Đảo Cau không có lan can đâu con. Hãy châm dầu giữ ít nhất 4/6 đèn sáng tới bình minh và coi chừng Gió Lạc!”',
     durationS: STANDARD_TUNING.night2_duration_s,
     shadeSpeed: 4.0,
-    shadeSpawnIntervalTicks: 420, // 7s
+    shadeSpawnIntervalTicks: 420,
     shadeMaxCount: 8,
     hasDrifters: true,
     hasWind: false,
@@ -187,14 +208,14 @@ export const NIGHT_MAPS: Record<NightNumber, NightMapConfig> = {
     night: 3,
     title: 'Đêm 3',
     islandName: 'Đảo Chuông',
-    elderQuote: '“Đêm cuối cùng trên Đảo Chuông ba tầng! Leo hai con dốc lên tầng giữa, dùng bục nhảy tới Tháp Chuông và vững chân trước những cơn gió lớn.”',
+    elderQuote: '“Đêm cuối cùng trên Đảo Chuông ba tầng! Đừng để Bóng Mực hút cạn đèn yếu — giữ ít nhất 5/7 đèn sáng cho đến khi bình minh lên!”',
     durationS: STANDARD_TUNING.night3_duration_s,
     shadeSpeed: 4.5,
-    shadeSpawnIntervalTicks: 360, // 6s
+    shadeSpawnIntervalTicks: 360,
     shadeMaxCount: 10,
     hasDrifters: true,
     hasWind: true,
-    spawnPos: [0, 0, -18], // Wait — let's check spawnPos! Contract v1.0 says player spawns at (0,0,0), wait: on Night 3 (0,0,0) is INSIDE the bell tower on Tier 2!
+    spawnPos: [0, 0, -18],
     lanterns: [
       { id: 'L1', pos: [0, 6, 6] },
       { id: 'L2', pos: [18, 3, 10] },

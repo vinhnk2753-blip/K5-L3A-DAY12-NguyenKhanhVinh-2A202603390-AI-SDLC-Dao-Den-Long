@@ -27,6 +27,11 @@ export function createRng(seed: number): SeededRng {
   };
 }
 
+export function round1(v: number): number {
+  const r = Math.round(v * 10) / 10;
+  return r === 0 ? 0 : r;
+}
+
 export function round3(v: number): number {
   const r = Math.round(v * 1000) / 1000;
   return r === 0 ? 0 : r;
