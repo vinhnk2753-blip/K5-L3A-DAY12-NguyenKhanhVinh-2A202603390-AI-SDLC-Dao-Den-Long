@@ -1,0 +1,57 @@
+﻿
+> dao-den-long@0.1.0 verify
+> node scripts/verify-gate.mjs
+
+
+=== [GATE] Typecheck ===
+
+> dao-den-long@0.1.0 typecheck
+> tsc --noEmit
+
+
+=== [GATE] Build CLI + Web ===
+
+> dao-den-long@0.1.0 build
+> npm run build:cli && npm run build:web
+
+
+> dao-den-long@0.1.0 build:cli
+> tsc -p tsconfig.cli.json
+
+
+> dao-den-long@0.1.0 build:web
+> vite build
+
+[36mvite v6.4.6 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 12 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  2.23 kB[22m[1m[22m[2m │ gzip:   0.91 kB[22m
+[2mdist/[22m[35massets/index-DGoXvNdl.css  [39m[1m[2m  3.43 kB[22m[1m[22m[2m │ gzip:   1.32 kB[22m
+[2mdist/[22m[36massets/index-Y6tqGONp.js   [39m[1m[33m501.87 kB[39m[22m[2m │ gzip: 128.91 kB[22m
+[32m✓ built in 934ms[39m
+
+=== [GATE] Unit & Contract Tests ===
+
+> dao-den-long@0.1.0 test
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mC:/Users/sorry/OneDrive/Desktop/VIN_AI/Lab/Lab_Day12/K5-L3A-DAY12-NguyenKhanhVinh-2A202603390-AI-SDLC-Dao-Den-Long[39m
+
+ [32m✓[39m tests/sim/engine.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/cli/headless.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 184[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m   Start at [22m 16:10:06
+[2m   Duration [22m 627ms[2m (transform 87ms, setup 0ms, collect 175ms, tests 205ms, environment 0ms, prepare 256ms)[22m
+
+
+=== [GATE] Contract JSON & Headless Determinism Check ===
+Determinism PASS (night 1, 1200 ticks): SHA-256 = 9216db0d7280f0eb59e8af36c30ed5e2ee40cbfcea44ef36ca7de7dd4564bb56
+JSONL Structure PASS (65 lines, final state=playing, ticks=1200, score=0)
+Malformed inputs exit-code check PASS (exit code 2)
+
+[GATE PASSED] All verification checks succeeded.
