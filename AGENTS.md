@@ -1,4 +1,4 @@
-# AGENTS.md — Đảo Đèn Lồng (Phase 1)
+# AGENTS.md — Đảo Đèn Lồng (Phase 2 · Contract v1.1)
 
 ## Lệnh cốt lõi
 - Cài đặt: `npm ci`
@@ -7,21 +7,24 @@
 - Chạy test: `npm test`
 - Chạy cổng kiểm chứng đầy đủ (bắt buộc trước khi tag): `npm run verify`
 - Chạy game 3D: `npm run preview` (hoặc `npm run dev`)
-- Chạy headless: `node dist-cli/cli/headless.js --seed 42 --night 1 --ticks 600 --out tmp/out.jsonl`
+- Chạy headless (Đêm 1 / 2 / 3): `node dist-cli/cli/headless.js --seed 42 --night 3 --ticks 21600 --out tmp/out.jsonl`
 
-## Kiến trúc bắt buộc
-- `src/sim/` là lõi mô phỏng thuần TypeScript, cố định **60 tick/giây** (`DT = 1/60`).
-- **CẤM** import `three`, `window`, `document` hoặc dùng `Math.random()` trong `src/sim/` và `src/cli/`. Mọi số ngẫu nhiên phải đi qua PRNG có seed (`src/sim/rng.ts`).
-- `game.contract.json` là nguồn sự thật cho thông số `tuning`: mọi số trong `game.contract.json` phải khớp chính xác với `src/sim/config.ts` (được kiểm tra tự động bằng unit test).
-- Mọi yếu tố sáng tạo thêm (hiệu ứng, cảnh trang trí, âm thanh) chỉ nằm ở `src/game/` — **tuyệt đối không** làm thay đổi đầu ra headless.
+## Kiến trúc & Bất biến bắt buộc
+- `src/sim/` là lõi mô phỏng thuần TypeScript, cố định **60 tick/giây** (`DT = 1/60`), quản lý toàn bộ 3 Đêm (`terrain.ts` + `engine.ts`).
+- **CẤM** import `three`, DOM APIs, dùng `Math.random()`, hoặc `String.prototype.localeCompare` trong `src/sim/` và `src/cli/` (luôn dùng `src/sim/rng.ts` và so sánh mã ký tự `a < b ? -1 : a > b ? 1 : 0` để tất định 100% giữa Windows/macOS/Linux — bài học từ Phase 1 review).
+- `game.contract.json` (`v1.1`) phải khớp chính xác `STANDARD_TUNING` trong `src/sim/config.ts` (được ép bởi unit test).
+- Tuân thủ đúng **12 bước trong 1 tick** (Ticket-02): Input/Pause → Timers → Move/Fall → Pickup(Mote+Charm) → Interact → SafeZones → Pulse(3D) → Move(Shade+Drifter) → Contacts(Drifter trước, Shade sau) → Spawns → Win/Loss → Snapshot.
+- Quy ước góc bản đồ: đo từ `+X`, `(x = r cos α, z = r sin α)` nên `α ∈ (0°, 180°)` có `z > 0` (khớp tầng 1 và 2 dốc 30°/150° của Đêm 3).
+- Mọi yếu tố sáng tạo thêm và bảng màu/âm thanh chỉ nằm trong `src/game/` — **tuyệt đối không** đổi đầu ra headless.
 
-## Quy ước Test Contract v1.0
-- Snapshot tick 0 ghi trước khi áp dụng input; bước `k` (`0..N-1`) tạo trạng thái và sự kiện tại `tick = k + 1`.
-- Mọi khoảng cách trong `tuning` đo theo mặt phẳng XZ (`<= r`). Tọa độ làm tròn 3 chữ số thập phân.
-- Lỗi cú pháp/schema trong `--inputs` hoặc `--scenario` phải thoát với mã **2** và ghi rõ ra `stderr`.
-- Cùng `--seed`, `--scenario`, `--inputs` phải sinh ra JSONL giống hệt nhau từng byte giữa hai lần chạy.
+## Quy ước Test Contract v1.1
+- Hỗ trợ `--night 1`, `2`, `3`; sự kiện `night_start {night}` phát tại tick 0 sau snapshot tick 0.
+- Trạng thái Bóng Mực bắt buộc dùng đúng 5 tên: `spawning`, `wander`, `chase`, `recoil`, `stunned`.
+- Tọa độ và số đo thời gian làm tròn 3 chữ số thập phân (`round3`).
+- File `--inputs` / `--scenario` sai JSON hoặc sai schema phải thoát mã **2** và báo lỗi ra `stderr`.
+- Chạy trọn Đêm 3 (`21.600` tick) headless phải xong trong **≤ 30 giây**.
 
-## Quy trình trước khi hoàn thành tác vụ
-1. Luôn viết test thất bại trước khi sửa logic (`src/sim/`).
-2. Chạy `npm run verify` — không được kết thúc hay gắn tag nếu cổng kiểm chứng báo đỏ.
-3. Không sửa tay bất kỳ file output bằng chứng nào trong `docs/proof/`.
+## Quy trình bắt buộc trước khi kết thúc / tag
+1. TDD: viết test hoặc scenario thất bại trước khi thêm cơ chế mới; khi luật Phase 2 thay đổi test Phase 1, sửa kèm ghi chú lý do rõ ràng (không tắt âm thầm).
+2. Chạy `npm run verify` — không kết thúc nếu typecheck, build, test, determinism hoặc benchmark 21.600 tick đỏ.
+3. Không sửa tay bất kỳ file bằng chứng nào trong `docs/proof/`.
