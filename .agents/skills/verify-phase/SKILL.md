@@ -1,27 +1,22 @@
 ---
 name: verify-phase
-description: Chạy kiểm chứng toàn diện cho Phase 2 (Contract v1.1): typecheck, build, unit/regression tests, scenario cho mọi tính năng mới, determinism 3 Đêm, benchmark 21.600 tick ≤ 30s và kiểm tra UI/FPS ≥ 30 ở 1280×720.
+description: Chạy kiểm chứng toàn diện cho Phase 3 (Contract v1.2): typecheck, build, regression Phase 1–2 + unit/scenario Phase 3 (fuel, drain, dawn_survived, capacity), determinism 3 Đêm và benchmark trọn Đêm 3.
 ---
 
-# Skill: Verify Phase (Phase 2 — Contract v1.1)
+# Skill: Verify Phase (Phase 3 — Contract v1.2)
 
 ## Khi nào dùng
-Chạy skill này sau mỗi thay đổi ở `src/sim/`, `src/cli/`, `src/game/`, `game.contract.json`, và **bắt buộc** ngay trước khi gắn tag `phase-2`.
+Chạy sau mỗi thay đổi ở `src/sim/`, `src/cli/`, `src/game/`, `game.contract.json`, và **bắt buộc** ngay trước khi gắn tag `phase-3`.
 
 ## Các bước thực hiện
-1. Chạy cổng kiểm chứng tự động (typecheck, build CLI+Web, toàn bộ Vitest gồm regression Phase 1 + Phase 2, kiểm tra `game.contract.json` v1.1, kiểm tra exit code 2, kiểm tra tính tất định Đêm 1/2/3, và benchmark Đêm 3 21.600 tick ≤ 30s):
+1. Chạy cổng kiểm chứng tự động (typecheck, build CLI+Web, toàn bộ Vitest gồm regression Phase 1–2 + Phase 3, đồng bộ `game.contract.json` v1.2, exit code 2, determinism 3 Đêm, benchmark Đêm 3 18.000 tick ≤ 30 s):
    ```bash
    npm run verify
    ```
-2. Chạy toàn bộ kịch bản headless cho từng tính năng mới của Phase 2 (`tests/scenarios/phase2/`) và lưu output JSONL thật vào `docs/proof/phase-2/`:
-   - `dash-and-air.jsonl`
-   - `fall-respawn.jsonl`
-   - `night2-jumppad.jsonl`
-   - `night3-ramps-wind.jsonl`
-   - `drifter-steal-pulse.jsonl`
-   - `wind-charm.jsonl`
-   - `pause-resume.jsonl`
-3. Kiểm chứng bản 3D trên trình duyệt ở độ phân giải `1280×720`:
-   - Mở `npm run preview`, kiểm tra Menu chính → Intro Đêm (lời Ông Đăng) → Gameplay → Pause (`Esc`/`P`) → Cài đặt → HUD & bảng màu chuẩn.
-   - Đo FPS trung bình (yêu cầu ≥ 30 FPS ở 1280×720) và chụp ảnh lưu vào `docs/proof/phase-2/`.
-4. Điều phối subagent reviewer độc lập đọc mã nguồn + diff + bằng chứng và khắc phục mọi lỗi trước khi gắn tag `phase-2`.
+2. Chạy các kịch bản headless Phase 3 (`tests/scenarios/phase3/`) và lưu output JSONL thật vào `docs/proof/phase-3/`:
+   - `fuel-refuel-relight.jsonl`
+   - `shade-drain-pulse.jsonl`
+   - `dawn-survived-win.jsonl`
+   - `dynamic-capacity.jsonl`
+3. Xác minh chế độ mù màu, thanh dầu, đèn tắt xẹp 20% + vết rách và HUD `carried/capacity` hoạt động sạch không lỗi.
+4. Chạy subagent reviewer độc lập kiểm tra diff, ADR và bằng chứng trước khi gắn tag `phase-3`.
