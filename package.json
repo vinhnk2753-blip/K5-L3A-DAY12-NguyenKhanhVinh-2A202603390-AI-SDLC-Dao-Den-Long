@@ -12,7 +12,7 @@
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "soak": "node --expose-gc --max-semi-space-size=2 dist-cli/cli/soak.js --seed 7 --nights 10 --out soak.json",
+    "soak": "node --expose-gc --max-semi-space-size=2 --no-concurrent-recompilation --v8-pool-size=1 dist-cli/cli/soak.js --seed 7 --nights 10 --out soak.json",
     "bench": "node dist-cli/cli/bench.js --seed 42 --duration 30 --out bench.json",
     "verify": "node scripts/verify-gate.mjs"
   },

@@ -75,24 +75,31 @@ function main(): void {
         pause: false
       };
       for (const wn of [1, 2, 3] as NightNumber[]) {
-        let warm: ReturnType<typeof createSimulation> | null = createSimulation({ seed: 100 + wn, night: wn });
         const warmRng = createRng((wn * 2654435761) >>> 0);
-        for (let w = 0; w < 4500; w++) {
-          if (warm.getState() === 'won' || warm.getState() === 'lost') break;
-          if (w % 30 === 0) {
-            const a = warmRng.range(0, Math.PI * 2);
-            warmInput.move[0] = Math.cos(a);
-            warmInput.move[1] = Math.sin(a);
-            warmInput.cam_yaw_deg = warmRng.range(0, 360);
+        let warmRun = 0;
+        let warmTicks = 0;
+        while (warmTicks < 5000) {
+          let warm: ReturnType<typeof createSimulation> | null = createSimulation({
+            seed: 100 + wn * 10 + warmRun++,
+            night: wn
+          });
+          while (warmTicks < 5000 && warm.getState() !== 'won' && warm.getState() !== 'lost') {
+            if (warmTicks % 30 === 0) {
+              const a = warmRng.range(0, Math.PI * 2);
+              warmInput.move[0] = Math.cos(a);
+              warmInput.move[1] = Math.sin(a);
+              warmInput.cam_yaw_deg = warmRng.range(0, 360);
+            }
+            warmInput.jump = warmRng.next() < 0.05;
+            warmInput.dash = warmRng.next() < 0.03;
+            warmInput.pulse = warmRng.next() < 0.02;
+            warmInput.interact = warmRng.next() < 0.1;
+            warm.step(warmInput);
+            warmTicks += 1;
           }
-          warmInput.jump = warmRng.next() < 0.05;
-          warmInput.dash = warmRng.next() < 0.03;
-          warmInput.pulse = warmRng.next() < 0.02;
-          warmInput.interact = warmRng.next() < 0.1;
-          warm.step(warmInput);
+          warm = null;
+          maybeGc();
         }
-        warm = null;
-        maybeGc();
       }
     }
 

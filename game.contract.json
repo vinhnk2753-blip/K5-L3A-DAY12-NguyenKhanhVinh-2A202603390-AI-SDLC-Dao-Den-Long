@@ -5,7 +5,7 @@
   "run_cmd": "node dist-cli/cli/run.js",
   "headless_cmd": "node dist-cli/cli/headless.js",
   "bench_cmd": "node dist-cli/cli/bench.js",
-  "soak_cmd": "node --expose-gc --max-semi-space-size=2 dist-cli/cli/soak.js",
+  "soak_cmd": "node --expose-gc --max-semi-space-size=2 --no-concurrent-recompilation --v8-pool-size=1 dist-cli/cli/soak.js",
   "tuning": {
     "player_speed": 6.0,
     "carry_capacity": 10,

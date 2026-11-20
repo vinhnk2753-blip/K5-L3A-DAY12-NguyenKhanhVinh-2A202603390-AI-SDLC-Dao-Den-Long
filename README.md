@@ -61,7 +61,7 @@ Sau lệnh thứ 3 (`node dist-cli/cli/run.js`), mở trình duyệt tại `http
   *(Tự động mở cửa sổ 1280×720 không toàn màn hình bằng Chrome/Chromium/Edge với cờ `--disable-gpu-vsync`, `vsync_off: true`; có thể chỉ định trình duyệt qua biến môi trường `BENCH_BROWSER`.)*
 - **Soak Test 10 Đêm liên tiếp (`soak.json`):**
   ```bash
-  node --expose-gc --max-semi-space-size=2 dist-cli/cli/soak.js --seed 7 --nights 10 --out soak.json
+  node --expose-gc --max-semi-space-size=2 --no-concurrent-recompilation --v8-pool-size=1 dist-cli/cli/soak.js --seed 7 --nights 10 --out soak.json
   ```
 - **Xuất Bảng xếp hạng cục bộ (Top 10):**
   ```bash

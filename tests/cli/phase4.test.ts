@@ -18,7 +18,11 @@ afterAll(() => {
 describe('Phase 4 CLIs — Soak Test & Leaderboard Export', () => {
   it('runs soak test for 3 nights with 0 crashes, valid JSON, and bounded memory', () => {
     const out = path.join(tmpDir, 'soak-3.json');
-    execFileSync(process.execPath, ['--expose-gc', '--max-semi-space-size=2', soakCli, '--seed', '7', '--nights', '3', '--out', out], { stdio: 'pipe' });
+    execFileSync(
+      process.execPath,
+      ['--expose-gc', '--max-semi-space-size=2', '--no-concurrent-recompilation', '--v8-pool-size=1', soakCli, '--seed', '7', '--nights', '3', '--out', out],
+      { stdio: 'pipe' }
+    );
     const data = JSON.parse(readFileSync(out, 'utf8'));
     expect(data.nights).toBe(3);
     expect(data.crashes).toBe(0);
