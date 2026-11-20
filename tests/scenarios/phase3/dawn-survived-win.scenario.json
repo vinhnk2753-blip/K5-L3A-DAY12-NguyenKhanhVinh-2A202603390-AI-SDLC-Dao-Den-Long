@@ -1,0 +1,15 @@
+{
+  "player": { "pos": [0, 0, 0], "carried": 0, "flames": 2 },
+  "random_motes": false,
+  "random_shades": false,
+  "motes": [],
+  "shades": [],
+  "lanterns": [
+    { "id": "L1", "lit": true, "fuel": 50 },
+    { "id": "L2", "lit": true, "fuel": 60 },
+    { "id": "L3", "lit": true, "fuel": 70 },
+    { "id": "L4", "lit": false },
+    { "id": "L5", "lit": false }
+  ],
+  "time_left_s": 1
+}

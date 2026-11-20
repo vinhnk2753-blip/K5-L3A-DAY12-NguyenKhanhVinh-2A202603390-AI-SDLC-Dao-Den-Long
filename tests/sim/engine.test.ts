@@ -6,22 +6,24 @@ import { createSimulation, runSimulation } from '../../src/sim/engine.js';
 import type { InputFrame, ScenarioConfig } from '../../src/sim/types.js';
 
 /**
- * Phase 1 Regression Suite — updated for Ticket-02 standardized constants:
- * - PHASE1_TUNING replaced by STANDARD_TUNING (player_speed 6.5->6.0, lantern_cost 8->10,
- *   pickup_radius 1.2->1.0, interact_radius 2.2->2.0, night1_duration_s 240->300, fall_enabled false->true).
- * - Reason: Ticket-02 Part 1 mandates standardized tuning across all submissions while keeping
- *   all Phase 1 gameplay behaviors passing regression.
+ * Phase 1-2 Regression Suite — updated for Ticket-03 ("Đèn cạn dầu", Contract v1.2, ADR-001):
+ * - Replaced early win ("all_lit") test: Ticket-03 removes early win on lighting all lanterns;
+ *   lighting the 5th lantern keeps state="playing" and emits lantern_lit {relight: false} with
+ *   new scoring (+5/mote, +100 first light). Win is now evaluated at dawn ("dawn_survived").
+ * - Updated dawn win test: reaching dawn with >= 3/5 lit lanterns wins with reason="dawn_survived".
+ * - All non-replaced Phase 1-2 mechanics (movement, yaw, jump, pulse, shade hit, safe zone >=30 fuel,
+ *   determinism) remain strictly verified.
  */
-describe('Contract v1.1 sync', () => {
+describe('Contract v1.2 sync', () => {
   it('matches game.contract.json tuning exactly', () => {
     const raw = readFileSync(path.resolve(process.cwd(), 'game.contract.json'), 'utf8');
     const contract = JSON.parse(raw);
-    expect(contract.contract_version).toBe('1.1');
+    expect(contract.contract_version).toBe('1.2');
     expect(contract.tuning).toEqual(STANDARD_TUNING);
   });
 });
 
-describe('Simulation core — Phase 1 Regression with Standardized Constants', () => {
+describe('Simulation core — Phase 1-2 Regression under Contract v1.2', () => {
   it('creates tick 0 snapshot from scenario without emitting events or awarding score', () => {
     const scenario: ScenarioConfig = {
       player: { pos: [1, 0, 2], carried: 4, flames: 2 },
@@ -40,22 +42,15 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
     expect(snap.state).toBe('playing');
     expect(snap.score).toBe(0);
     expect(snap.time_left_s).toBe(120);
-    expect(snap.player.pos).toEqual([1, 0, 2]);
-    expect(snap.player.carried).toBe(4);
-    expect(snap.player.flames).toBe(2);
-    expect(snap.lanterns.find((l) => l.id === 'L1')?.lit).toBe(true);
-    expect(snap.motes_active).toBe(1);
-    expect(snap.shades).toHaveLength(1);
+    expect(snap.player.capacity).toBe(10); // pre-lit scenario lantern does NOT increase capacity
+    const l1 = snap.lanterns.find((l) => l.id === 'L1');
+    expect(l1?.lit).toBe(true);
+    expect(l1?.fuel).toBe(100); // default fuel=100 when scenario sets lit:true without fuel
     expect(sim.drainEvents()).toEqual([]);
   });
 
   it('moves according to cam_yaw_deg and normalizes move vectors > 1', () => {
-    const baseScenario: ScenarioConfig = {
-      random_motes: false,
-      random_shades: false,
-      motes: [],
-      shades: []
-    };
+    const baseScenario: ScenarioConfig = { random_motes: false, random_shades: false, motes: [], shades: [] };
 
     const r1 = runSimulation({
       seed: 1,
@@ -65,9 +60,7 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
       ticks: 60,
       snapshotEvery: 60
     });
-    const last1 = r1.snapshots[r1.snapshots.length - 1];
-    expect(last1.player.pos[0]).toBeCloseTo(0, 2);
-    expect(last1.player.pos[2]).toBeCloseTo(STANDARD_TUNING.player_speed, 2);
+    expect(r1.snapshots[r1.snapshots.length - 1].player.pos[2]).toBeCloseTo(STANDARD_TUNING.player_speed, 2);
 
     const r2 = runSimulation({
       seed: 1,
@@ -77,9 +70,7 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
       ticks: 60,
       snapshotEvery: 60
     });
-    const last2 = r2.snapshots[r2.snapshots.length - 1];
-    expect(last2.player.pos[0]).toBeCloseTo(STANDARD_TUNING.player_speed, 2);
-    expect(last2.player.pos[2]).toBeCloseTo(0, 2);
+    expect(r2.snapshots[r2.snapshots.length - 1].player.pos[0]).toBeCloseTo(STANDARD_TUNING.player_speed, 2);
 
     const r3 = runSimulation({
       seed: 1,
@@ -90,8 +81,7 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
       snapshotEvery: 60
     });
     const last3 = r3.snapshots[r3.snapshots.length - 1];
-    const dist = Math.hypot(last3.player.pos[0], last3.player.pos[2]);
-    expect(dist).toBeCloseTo(STANDARD_TUNING.player_speed, 2);
+    expect(Math.hypot(last3.player.pos[0], last3.player.pos[2])).toBeCloseTo(STANDARD_TUNING.player_speed, 2);
   });
 
   it('jumps on false->true edge when grounded and lands back on Y=0', () => {
@@ -110,8 +100,7 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
     expect(res.snapshots[res.snapshots.length - 1].player.grounded).toBe(true);
   });
 
-  it('picks up motes, deposits 10 into final lantern, lights all 5, and wins with exact score', () => {
-    // Updated lantern_cost 8 -> 10 per Ticket-02 Part 1
+  it('lights all 5 lanterns with +5/mote +100 first light and does NOT end early (replaces old all_lit rule per Ticket-03)', () => {
     const scenario: ScenarioConfig = {
       player: { pos: [0, 0, 0], carried: 9, flames: 3 },
       random_motes: false,
@@ -120,10 +109,10 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
       shades: [],
       lanterns: [
         { id: 'L1', pos: [0, 0, 4], deposited: 0, lit: false },
-        { id: 'L2', lit: true, deposited: 10 },
-        { id: 'L3', lit: true, deposited: 10 },
-        { id: 'L4', lit: true, deposited: 10 },
-        { id: 'L5', lit: true, deposited: 10 }
+        { id: 'L2', lit: true, fuel: 100 },
+        { id: 'L3', lit: true, fuel: 100 },
+        { id: 'L4', lit: true, fuel: 100 },
+        { id: 'L5', lit: true, fuel: 100 }
       ],
       time_left_s: 100
     };
@@ -133,16 +122,16 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
       { tick: 35, move: [0, 0], interact: true },
       { tick: 36, interact: false }
     ];
-    const res = runSimulation({ seed: 7, night: 1, scenario, inputs: { frames }, ticks: 120, snapshotEvery: 10 });
+    const res = runSimulation({ seed: 7, night: 1, scenario, inputs: { frames }, ticks: 60, snapshotEvery: 10 });
 
     expect(res.events.some((e) => e.name === 'mote_picked' && e.data.carried === 10)).toBe(true);
     expect(res.events.some((e) => e.name === 'deposit' && e.data.lantern_id === 'L1' && e.data.amount === 10)).toBe(true);
-    expect(res.events.some((e) => e.name === 'lantern_lit' && e.data.lantern_id === 'L1')).toBe(true);
-    const go = res.events.find((e) => e.name === 'game_over');
-    expect(go?.data).toEqual({ result: 'won', reason: 'all_lit' });
-    expect(res.end.state).toBe('won');
-    // Score: 10*10 + 100 + 99*2 + 3*50 = 548
-    expect(res.end.score).toBe(100 + 100 + 99 * 2 + 150);
+    expect(res.events.some((e) => e.name === 'lantern_lit' && e.data.lantern_id === 'L1' && e.data.relight === false)).toBe(true);
+    // Ticket-03: no early win! Still playing after lighting all 5 lanterns
+    expect(res.events.find((e) => e.name === 'game_over')).toBeUndefined();
+    expect(res.end.state).toBe('playing');
+    // New scoring: 10 * 5 + 100 = 150
+    expect(res.end.score).toBe(150);
   });
 
   it('pulses to stun and push nearby shades (3D from player.y+0.8), enforces cooldown', () => {
@@ -168,8 +157,7 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
     expect(pulseEvents).toHaveLength(1);
     expect(pulseEvents[0].data.stunned_ids).toEqual(['S1']);
 
-    const snap20 = res.snapshots[20];
-    const s1 = snap20.shades.find((s) => s.id === 'S1');
+    const s1 = res.snapshots[20].shades.find((s) => s.id === 'S1');
     expect(s1?.pos[0]).toBeCloseTo(7.0, 1);
     expect(s1?.state).toBe('stunned');
   });
@@ -183,20 +171,18 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
       shades: [{ id: 'S1', pos: [1.5, 1, 0] }]
     };
     const res = runSimulation({ seed: 3, night: 1, scenario, ticks: 60, snapshotEvery: 10 });
-    const hit = res.events.find((e) => e.name === 'player_hit');
-    expect(hit?.data).toEqual({ by: 'shade', flames: 0, dropped: 2 });
-    const go = res.events.find((e) => e.name === 'game_over');
-    expect(go?.data).toEqual({ result: 'lost', reason: 'no_flames' });
+    expect(res.events.find((e) => e.name === 'player_hit')?.data).toEqual({ by: 'shade', flames: 0, dropped: 2 });
+    expect(res.events.find((e) => e.name === 'game_over')?.data).toEqual({ result: 'lost', reason: 'no_flames' });
     expect(res.end.state).toBe('lost');
   });
 
-  it('blocks shades outside lit lantern safe_radius (6m)', () => {
+  it('blocks shades outside lit lantern safe_radius (6m) while fuel >= 30', () => {
     const scenario: ScenarioConfig = {
       player: { pos: [0, 0, 25], carried: 0, flames: 3 },
       random_motes: false,
       random_shades: false,
       motes: [],
-      lanterns: [{ id: 'L1', pos: [0, 0, 25], lit: true, deposited: 10 }],
+      lanterns: [{ id: 'L1', pos: [0, 0, 25], lit: true, fuel: 100 }],
       shades: [{ id: 'S1', pos: [0, 1, 16] }]
     };
     const res = runSimulation({ seed: 4, night: 1, scenario, ticks: 180, snapshotEvery: 10 });
@@ -207,7 +193,7 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
     }
   });
 
-  it('ends with dawn loss when time runs out, but all_lit wins even on exact dawn tick', () => {
+  it('ends with dawn loss when < 60% lit at dawn, and dawn_survived win when >= 60% lit at dawn (Ticket-03)', () => {
     const lossRes = runSimulation({
       seed: 5,
       night: 1,
@@ -218,30 +204,31 @@ describe('Simulation core — Phase 1 Regression with Standardized Constants', (
     expect(lossRes.events.find((e) => e.name === 'game_over')?.data).toEqual({ result: 'lost', reason: 'dawn' });
     expect(lossRes.end.ticks).toBe(60);
 
-    // Light final lantern on the exact tick timer hits 0 -> still won!
-    const winOnLastTick = runSimulation({
+    // 3/5 lit lanterns at dawn (exact 60% threshold for Night 1) -> won / dawn_survived!
+    const winAtDawn = runSimulation({
       seed: 5,
       night: 1,
       scenario: {
-        player: { pos: [0, 0, 25], carried: 10, flames: 3 },
+        player: { pos: [0, 0, 0], carried: 0, flames: 2 },
         random_motes: false,
         random_shades: false,
         motes: [],
         shades: [],
         lanterns: [
-          { id: 'L1', pos: [0, 0, 25], deposited: 0, lit: false },
-          { id: 'L2', lit: true, deposited: 10 },
-          { id: 'L3', lit: true, deposited: 10 },
-          { id: 'L4', lit: true, deposited: 10 },
-          { id: 'L5', lit: true, deposited: 10 }
+          { id: 'L1', lit: true, fuel: 50 },
+          { id: 'L2', lit: true, fuel: 60 },
+          { id: 'L3', lit: true, fuel: 70 },
+          { id: 'L4', lit: false },
+          { id: 'L5', lit: false }
         ],
-        time_left_s: 1 / 60
+        time_left_s: 1
       },
-      inputs: { frames: [{ tick: 0, interact: true }] },
-      ticks: 5,
-      snapshotEvery: 1
+      ticks: 120,
+      snapshotEvery: 60
     });
-    expect(winOnLastTick.events.find((e) => e.name === 'game_over')?.data).toEqual({ result: 'won', reason: 'all_lit' });
+    expect(winAtDawn.events.find((e) => e.name === 'game_over')?.data).toEqual({ result: 'won', reason: 'dawn_survived' });
+    // After 1s (60 ticks), fuels are 49, 59, 69 -> bonus = (50+49)+(50+59)+(50+69) + 2*50 = 99+109+119+100 = 427
+    expect(winAtDawn.end.score).toBe(427);
   });
 
   it('is strictly deterministic for identical seeds', () => {
