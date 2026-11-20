@@ -1,0 +1,10 @@
+{
+  "player": { "pos": [0, 0, 20], "carried": 7, "flames": 3, "invuln_ticks": 90 },
+  "random_motes": false,
+  "random_shades": false,
+  "random_drifters": false,
+  "motes": [],
+  "shades": [],
+  "lanterns": [{ "id": "L1", "pos": [0, 0, 20], "lit": true, "deposited": 10 }],
+  "drifters": [{ "id": "D1", "pos": [0, 1.2, 18], "state": "idle", "stolen": 0 }]
+}

@@ -15,7 +15,7 @@ afterAll(() => {
   rmSync(tmpDir, { recursive: true, force: true });
 });
 
-describe('Input & Scenario validation', () => {
+describe('Input & Scenario validation (Contract v1.1)', () => {
   it('rejects non-increasing frame ticks and invalid move vectors', () => {
     expect(() => validateInputs({ frames: [{ tick: 10 }, { tick: 10 }] })).toThrow();
     expect(() => validateInputs({ frames: [{ tick: 10 }, { tick: 5 }] })).toThrow();
@@ -23,73 +23,52 @@ describe('Input & Scenario validation', () => {
     expect(() => validateInputs({ frames: 'bad' })).toThrow();
   });
 
-  it('accepts valid inputs and scenario', () => {
+  it('accepts valid v1.1 inputs (dash, pause) and scenario fields', () => {
     const inp = validateInputs({
       frames: [
-        { tick: 0, move: [0, 1], cam_yaw_deg: 0 },
-        { tick: 60, move: [0, 0], interact: true }
+        { tick: 0, move: [0, 1], cam_yaw_deg: 0, dash: true },
+        { tick: 10, pause: true }
       ]
     });
     expect(inp.frames).toHaveLength(2);
 
     const scen = validateScenario({
-      player: { pos: [0, 0, 0], carried: 2, flames: 3 },
+      player: { pos: [0, 0, 0], carried: 2, flames: 3, invuln_ticks: 30, dash_cd_ticks: 0, pulse_cd_ticks: 0, charm_ticks: 100 },
       random_motes: false,
-      motes: [[0, 0, 5]]
+      random_drifters: false,
+      wind_enabled: true,
+      shades: [{ id: 'S1', pos: [10, 1, 0], state: 'stunned', state_ticks_left: 60 }],
+      drifters: [{ id: 'D1', pos: [5, 1.2, 5], state: 'idle', stolen: 0 }],
+      charms: [{ id: 'C1', pos: [35, 0, 0], available: true, respawn_s: 0 }]
     });
-    expect(scen.random_motes).toBe(false);
+    expect(scen.wind_enabled).toBe(true);
   });
 });
 
-describe('Headless CLI contract v1.0', () => {
-  it('runs a scenario, emits valid JSONL, and exits 0 identically across two runs', () => {
-    const scenPath = path.join(tmpDir, 'scen.json');
-    const inPath = path.join(tmpDir, 'in.json');
-    const out1 = path.join(tmpDir, 'out1.jsonl');
-    const out2 = path.join(tmpDir, 'out2.jsonl');
+describe('Headless CLI Contract v1.1', () => {
+  it('runs Night 1, 2, 3 cleanly with v1.1 snapshots and deterministic output', () => {
+    for (const night of [1, 2, 3]) {
+      const out1 = path.join(tmpDir, `n${night}-1.jsonl`);
+      const out2 = path.join(tmpDir, `n${night}-2.jsonl`);
+      execFileSync(process.execPath, [cliPath, '--seed', '42', '--night', String(night), '--ticks', '180', '--out', out1, '--snapshot-every', '30']);
+      execFileSync(process.execPath, [cliPath, '--seed', '42', '--night', String(night), '--ticks', '180', '--out', out2, '--snapshot-every', '30']);
 
-    writeFileSync(
-      scenPath,
-      JSON.stringify({
-        player: { pos: [0, 0, 0], carried: 7, flames: 3 },
-        random_motes: false,
-        random_shades: false,
-        motes: [[0, 0, 2]],
-        shades: [],
-        lanterns: [
-          { id: 'L1', pos: [0, 0, 4], deposited: 0 },
-          { id: 'L2', lit: true, deposited: 8 },
-          { id: 'L3', lit: true, deposited: 8 },
-          { id: 'L4', lit: true, deposited: 8 },
-          { id: 'L5', lit: true, deposited: 8 }
-        ],
-        time_left_s: 120
-      })
-    );
-    writeFileSync(
-      inPath,
-      JSON.stringify({
-        frames: [
-          { tick: 0, move: [0, 1] },
-          { tick: 35, move: [0, 0], interact: true },
-          { tick: 36, interact: false }
-        ]
-      })
-    );
+      const text1 = readFileSync(out1, 'utf8');
+      const text2 = readFileSync(out2, 'utf8');
+      expect(text1).toBe(text2);
 
-    execFileSync(process.execPath, [cliPath, '--seed', '42', '--night', '1', '--scenario', scenPath, '--inputs', inPath, '--ticks', '200', '--out', out1, '--snapshot-every', '10']);
-    execFileSync(process.execPath, [cliPath, '--seed', '42', '--night', '1', '--scenario', scenPath, '--inputs', inPath, '--ticks', '200', '--out', out2, '--snapshot-every', '10']);
-
-    const text1 = readFileSync(out1, 'utf8');
-    const text2 = readFileSync(out2, 'utf8');
-    expect(text1).toBe(text2);
-
-    const lines = text1.trim().split(/\r?\n/).map((l) => JSON.parse(l));
-    expect(lines[0].type).toBe('snapshot');
-    expect(lines[0].tick).toBe(0);
-    const end = lines[lines.length - 1];
-    expect(end.type).toBe('end');
-    expect(end.state).toBe('won');
+      const lines = text1.trim().split(/\r?\n/).map((l) => JSON.parse(l));
+      expect(lines[0].type).toBe('snapshot');
+      expect(lines[0].tick).toBe(0);
+      expect(lines[0].night).toBe(night);
+      expect(lines[0].wind).toEqual({ active: false, dir_deg: 0 });
+      expect(Array.isArray(lines[0].motes)).toBe(true);
+      expect(Array.isArray(lines[0].drifters)).toBe(true);
+      expect(Array.isArray(lines[0].charms)).toBe(true);
+      expect(lines[1]).toEqual({ type: 'event', tick: 0, name: 'night_start', data: { night } });
+      const end = lines[lines.length - 1];
+      expect(end.type).toBe('end');
+    }
   });
 
   it('exits with code 2 when inputs file has invalid JSON or non-increasing ticks', () => {

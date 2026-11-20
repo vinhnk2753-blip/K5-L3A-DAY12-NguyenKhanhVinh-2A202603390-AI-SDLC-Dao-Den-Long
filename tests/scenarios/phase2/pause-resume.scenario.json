@@ -1,0 +1,8 @@
+{
+  "player": { "pos": [0, 0, 0], "carried": 5, "flames": 3, "pulse_cd_ticks": 60 },
+  "random_motes": false,
+  "random_shades": false,
+  "motes": [],
+  "shades": [],
+  "time_left_s": 100
+}
