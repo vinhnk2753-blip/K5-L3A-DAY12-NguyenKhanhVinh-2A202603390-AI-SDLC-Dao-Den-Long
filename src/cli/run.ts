@@ -2,7 +2,10 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { addLeaderboardEntry, formatIsoWithLocalOffset, type LeaderboardEntry, type LeaderboardFile, sortLeaderboard } from '../sim/leaderboard.js';
+
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -18,7 +21,7 @@ function getLeaderboardPath(): string {
   if (process.env.DAO_DEN_LONG_LEADERBOARD_PATH) {
     return path.resolve(process.env.DAO_DEN_LONG_LEADERBOARD_PATH);
   }
-  return path.resolve(process.cwd(), 'data', 'leaderboard.json');
+  return path.join(REPO_ROOT, 'data', 'leaderboard.json');
 }
 
 function readLeaderboardFile(filePath: string): LeaderboardFile {
@@ -67,7 +70,7 @@ function main(): void {
     process.exit(0);
   }
 
-  const distDir = path.resolve(process.cwd(), 'dist');
+  const distDir = path.join(REPO_ROOT, 'dist');
   if (!existsSync(path.join(distDir, 'index.html'))) {
     process.stderr.write('Error: dist/index.html not found. Run "npm run build" first.\n');
     process.exit(1);

@@ -58,7 +58,7 @@ try {
 
   // Run Soak Test (10 nights)
   const soakOut = path.join(tmpDir, 'soak-gate.json');
-  execFileSync(process.execPath, [soakEntry, '--seed', '7', '--nights', '10', '--out', soakOut], { cwd: root, stdio: 'pipe' });
+  execFileSync(process.execPath, ['--expose-gc', '--max-semi-space-size=4', soakEntry, '--seed', '7', '--nights', '10', '--out', soakOut], { cwd: root, stdio: 'pipe' });
   const soak = JSON.parse(readFileSync(soakOut, 'utf8'));
   if (soak.nights !== 10 || soak.crashes !== 0 || soak.mem_end_mb > soak.mem_start_mb * 1.2) {
     throw new Error(`Soak test FAILED: ${JSON.stringify(soak)}`);

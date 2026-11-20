@@ -51,6 +51,11 @@ function rssMb(): number {
   return round1(process.memoryUsage().rss / (1024 * 1024));
 }
 
+function maybeGc(): void {
+  const g = globalThis as { gc?: () => void };
+  if (typeof g.gc === 'function') g.gc();
+}
+
 function main(): void {
   try {
     const args = parseArgs(process.argv.slice(2));
@@ -98,6 +103,7 @@ function main(): void {
       try {
         let sim: ReturnType<typeof createSimulation> | null = createSimulation({ seed: nightSeed, night });
         if (i === 0) {
+          maybeGc();
           memStartMb = rssMb();
         }
 
@@ -133,6 +139,7 @@ function main(): void {
       }
     }
 
+    maybeGc();
     const memEndMb = rssMb();
     const durationS = round1((performance.now() - t0) / 1000);
 

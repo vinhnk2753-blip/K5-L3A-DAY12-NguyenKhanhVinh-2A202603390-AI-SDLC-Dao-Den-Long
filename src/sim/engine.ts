@@ -402,9 +402,13 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
     }
   }
 
-  let pendingEvents: EventRecord[] = [];
+  const EMPTY_EVENTS: EventRecord[] = [];
+  let pendingEvents: EventRecord[] = EMPTY_EVENTS;
 
   function emit(name: EventName, data: Record<string, unknown>): void {
+    if (pendingEvents === EMPTY_EVENTS) {
+      pendingEvents = [];
+    }
     pendingEvents.push({ type: 'event', tick, name, data });
   }
 
@@ -544,10 +548,10 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
 
   function step(input: LiveInputState): EventRecord[] {
     if (state === 'won' || state === 'lost') {
-      return [];
+      return EMPTY_EVENTS;
     }
 
-    pendingEvents = [];
+    pendingEvents = EMPTY_EVENTS;
     tick += 1;
 
     // 1. Read input (pause FIRST)
@@ -560,14 +564,14 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
         emit('resumed', {});
       } else {
         const out = pendingEvents;
-        pendingEvents = [];
+        pendingEvents = EMPTY_EVENTS;
         return out;
       }
     } else if (pausePressed) {
       state = 'paused';
       emit('paused', {});
       const out = pendingEvents;
-      pendingEvents = [];
+      pendingEvents = EMPTY_EVENTS;
       return out;
     }
 
@@ -1316,7 +1320,7 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
     }
 
     const out = pendingEvents;
-    pendingEvents = [];
+    pendingEvents = EMPTY_EVENTS;
     return out;
   }
 
@@ -1386,7 +1390,7 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
     getSnapshot,
     drainEvents(): EventRecord[] {
       const ev = pendingEvents;
-      pendingEvents = [];
+      pendingEvents = EMPTY_EVENTS;
       return ev;
     },
     getState: () => state,

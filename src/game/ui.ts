@@ -103,13 +103,14 @@ export class UiController {
     this.overlayEl.classList.remove('hidden', 'dawn');
     this.overlayCardEl.innerHTML = `<h1>Bảng Xếp Hạng</h1><p class="subtitle">Đang tải Top 10...</p>`;
     const entries = await cb.onLoadLeaderboard();
+    const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const rows =
       entries.length === 0
         ? `<tr><td colspan="5" style="text-align:center;">Chưa có kỷ lục nào. Hãy hoàn thành một lượt chơi!</td></tr>`
         : entries
             .map(
               (e, idx) =>
-                `<tr><td>#${idx + 1}</td><td>${e.name}</td><td><strong>${e.score}</strong></td><td>${e.nights_won}/3</td><td>${e.seed}</td></tr>`
+                `<tr><td>#${idx + 1}</td><td>${esc(e.name)}</td><td><strong>${e.score}</strong></td><td>${e.nights_won}/3</td><td>${e.seed}</td></tr>`
             )
             .join('');
 

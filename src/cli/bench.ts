@@ -5,8 +5,11 @@ import os from 'node:os';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { computeBenchMetrics } from '../sim/leaderboard.js';
 import { round1 } from '../sim/rng.js';
+
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const PROCESS_START_MS = performance.now();
 
@@ -113,7 +116,7 @@ function sampleBrowserTreeRssMb(rootPid: number): number | null {
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
-  const distDir = path.resolve(process.cwd(), 'dist');
+  const distDir = path.join(REPO_ROOT, 'dist');
   if (!existsSync(path.join(distDir, 'index.html'))) {
     throw new Error('Missing dist/index.html. Run "npm run build" first.');
   }

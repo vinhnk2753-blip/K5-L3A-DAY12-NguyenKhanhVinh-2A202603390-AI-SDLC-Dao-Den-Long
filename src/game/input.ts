@@ -42,7 +42,8 @@ export class InputController {
     const tag = (e.target as HTMLElement | null)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-    if (!e.repeat && (e.code === this.keybinds.pause || e.code === 'KeyP')) {
+    const isBoundElsewhere = Object.values(this.keybinds).includes('KeyP');
+    if (!e.repeat && (e.code === this.keybinds.pause || (e.code === 'KeyP' && !isBoundElsewhere))) {
       this.pauseQueued = true;
     }
     this.keys.add(e.code);

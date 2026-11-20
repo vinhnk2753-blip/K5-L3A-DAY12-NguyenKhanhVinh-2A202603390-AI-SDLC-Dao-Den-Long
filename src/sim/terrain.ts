@@ -133,9 +133,19 @@ export interface MoveResolveResult {
   blocked: boolean;
 }
 
+const sharedMoveResult: MoveResolveResult = { x: 0, z: 0, blocked: false };
+
+function setMoveResult(x: number, z: number, blocked: boolean): MoveResolveResult {
+  sharedMoveResult.x = x;
+  sharedMoveResult.z = z;
+  sharedMoveResult.blocked = blocked;
+  return sharedMoveResult;
+}
+
 /**
  * Resolves horizontal movement against obstacles (bell tower, vertical cliffs, and optionally void edge).
  * Allows smooth wall sliding along X/Z axes or tangent to circular bell tower.
+ * Uses a shared result struct to avoid per-tick heap allocations (read fields immediately).
  */
 export function resolveHorizontalMove(
   night: NightNumber,
@@ -147,7 +157,7 @@ export function resolveHorizontalMove(
   keepOnLand: boolean
 ): MoveResolveResult {
   if (!isStepBlocked(night, curY, targetX, targetZ, keepOnLand)) {
-    return { x: targetX, z: targetZ, blocked: false };
+    return setMoveResult(targetX, targetZ, false);
   }
 
   // Push out smoothly if trying to penetrate the circular bell tower
@@ -158,7 +168,7 @@ export function resolveHorizontalMove(
     const px = ux * (BELL_TOWER_RADIUS + 0.001);
     const pz = uz * (BELL_TOWER_RADIUS + 0.001);
     if (!isStepBlocked(night, curY, px, pz, keepOnLand)) {
-      return { x: px, z: pz, blocked: true };
+      return setMoveResult(px, pz, true);
     }
   }
 
@@ -167,20 +177,19 @@ export function resolveHorizontalMove(
   const canZ = !isStepBlocked(night, curY, oldX, targetZ, keepOnLand);
 
   if (canX && !canZ) {
-    return { x: targetX, z: oldZ, blocked: true };
+    return setMoveResult(targetX, oldZ, true);
   }
   if (canZ && !canX) {
-    return { x: oldX, z: targetZ, blocked: true };
+    return setMoveResult(oldX, targetZ, true);
   }
   if (canX && canZ) {
-    // Pick larger axis delta
     if (Math.abs(targetX - oldX) >= Math.abs(targetZ - oldZ)) {
-      return { x: targetX, z: oldZ, blocked: true };
+      return setMoveResult(targetX, oldZ, true);
     }
-    return { x: oldX, z: targetZ, blocked: true };
+    return setMoveResult(oldX, targetZ, true);
   }
 
-  return { x: oldX, z: oldZ, blocked: true };
+  return setMoveResult(oldX, oldZ, true);
 }
 
 /**
