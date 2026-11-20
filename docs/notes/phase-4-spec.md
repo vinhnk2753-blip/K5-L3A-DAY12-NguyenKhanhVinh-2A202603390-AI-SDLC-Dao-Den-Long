@@ -1,0 +1,12 @@
+# Phase 4 Spec & Acceptance Criteria (Ticket-04 "Bình minh: phát hành v1.0.0" · Contract v1.3)
+
+## 1. Phạm vi & Yêu cầu đo đạc cụ thể (Ticket-04)
+
+| ID | Yêu cầu | Ngưỡng / Chi tiết bắt buộc | Kế hoạch kiểm chứng |
+|---|---|---|---|
+| P4-AC1 | Contract v1.3 (`game.contract.json`) | `contract_version: "1.3"`, thêm `bench_cmd`, `soak_cmd`, giữ nguyên mọi luật v1.0–v1.2 | Unit test đồng bộ contract + `npm run verify` |
+| P4-AC2 | Chế độ Benchmark (`bench_cmd --seed 42 --duration 30 --out bench.json`) | Cửa sổ `1280×720`, Đêm 1, 200 Bóng `wander` + 100 đom đóm + L1–L3 `fuel=100`, tắt sáng tạo/spawn/sát thương/nhặt/hao dầu/kết thúc, Mây đứng `(0,0,0)`, camera quay bán kính 30 m cao Y=15 m CCW 15 s/vòng từ `(30,15,0)`, 3 s warmup + 30 s đo, tự thoát mã 0. Ngưỡng máy chấm: `avg_fps >= 60`, `p1_low_fps >= 30`, `load_ms <= 10000` | Chạy thật `node dist-cli/cli/bench.js --seed 42 --duration 30 --out bench.json`, commit `bench.json` |
+| P4-AC3 | Soak test (`soak_cmd --seed 7 --nights 10 --out soak.json`) | 10 Đêm liên tiếp xoay vòng 1→2→3 trong cùng 1 tiến trình, seed `7 + i`, input ngẫu nhiên mỗi 30 tick + xác suất 5%/3%/2%/10%; `crashes = 0`, `mem_end_mb <= 1.2 * mem_start_mb` | Chạy thật `node dist-cli/cli/soak.js --seed 7 --nights 10 --out soak.json`, commit `soak.json` |
+| P4-AC4 | Bảng xếp hạng cục bộ + `--export-leaderboard` | Nhập tên `3–12` ký tự (`[A-Za-z0-9_]` + hỗ trợ tiếng Việt có dấu) sau Bình Minh hoặc thua; lưu đĩa cục bộ top 10 (`score DESC`, tie-break đạt trước đứng trên); màn hình Bảng xếp hạng từ Menu; `<run_cmd> --export-leaderboard out.json` xuất `{"entries":[...]}` | Unit test `leaderboard.test.ts` + CLI export test + kiểm tra UI trình duyệt |
+| P4-AC5 | Dễ tiếp cận (Accessibility) | Đổi phím đủ 9 hành động + phát hiện trùng phím + "Khôi phục mặc định" (lưu bền vững); phụ đề/chỉ báo hình ảnh (Bóng Mực xuất hiện + mũi tên mép, gió sắp thổi, 10s cuối, đèn `< 30`); Giảm chuyển động (tắt rung & chớp); cỡ chữ UI ≥ 18 px ở 1280×720 + tùy chọn chữ lớn `×1.25` | Kiểm tra unit/build + kiểm tra trực quan trình duyệt `1280×720` |
+| P4-AC6 | Đóng gói, Tài liệu, Retro & Release `v1.0.0` | Clone sạch chạy ≤ 3 lệnh; `README.md` đủ ảnh + lệnh test/headless/bench/soak/export; `CHANGELOG.md` đủ 4 phase; `CREDITS.md`, `LICENSE`, `Dockerfile`; Retro 1–2 trang (`docs/notes/retro.md`); `tag phase-4` + gói phát hành cho Release `v1.0.0` | `npm run verify` + test clone sạch + Independent Reviewer |

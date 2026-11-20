@@ -1,9 +1,11 @@
 {
-  "contract_version": "1.2",
+  "contract_version": "1.3",
   "team": "2A202603390-nguyen-khanh-vinh",
   "build_cmd": "npm ci && npm run build",
-  "run_cmd": "npm run preview",
+  "run_cmd": "node dist-cli/cli/run.js",
   "headless_cmd": "node dist-cli/cli/headless.js",
+  "bench_cmd": "node dist-cli/cli/bench.js",
+  "soak_cmd": "node dist-cli/cli/soak.js",
   "tuning": {
     "player_speed": 6.0,
     "carry_capacity": 10,
