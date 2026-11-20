@@ -114,6 +114,14 @@ body,
   animation: blink 0.65s infinite alternate;
 }
 
+body.colorblind {
+  --danger: #ffffff;
+}
+
+body.colorblind .hud-timer.danger::before {
+  content: '⚠ ';
+}
+
 @keyframes blink {
   from {
     opacity: 1;

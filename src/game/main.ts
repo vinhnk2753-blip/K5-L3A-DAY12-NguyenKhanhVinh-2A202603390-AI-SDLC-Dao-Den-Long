@@ -12,6 +12,7 @@ type ScreenMode = 'menu' | 'intro' | 'playing' | 'paused' | 'result';
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 const settings: GameSettings = loadSettings();
+document.body.classList.toggle('colorblind', settings.colorblindMode);
 const audio = new AudioEngine();
 audio.setVolume(settings.volume);
 
@@ -94,6 +95,8 @@ const callbacks: MenuCallbacks = {
   onSettingsChange(next: GameSettings) {
     settings.volume = next.volume;
     settings.mouseSensitivity = next.mouseSensitivity;
+    settings.colorblindMode = next.colorblindMode;
+    document.body.classList.toggle('colorblind', settings.colorblindMode);
     saveSettings(settings);
     audio.setVolume(settings.volume);
     input.setMouseSensitivity(settings.mouseSensitivity);
@@ -112,8 +115,14 @@ function playAudioForEvents(events: EventRecord[]): void {
       case 'deposit':
         audio.playDeposit();
         break;
+      case 'refuel':
+        audio.playRefuel();
+        break;
       case 'lantern_lit':
         audio.playLanternLit();
+        break;
+      case 'lantern_out':
+        audio.playLanternOut();
         break;
       case 'pulse':
         audio.playPulse();
@@ -223,7 +232,7 @@ function loop(now: number): void {
   }
 
   const snap = sim.getSnapshot();
-  scene.sync(snap, frameEvents, input.getCamYawDeg(), sim.getFacingYaw(), sim.isWindWarning(), sim.isRespawning(), frameDt);
+  scene.sync(snap, frameEvents, input.getCamYawDeg(), sim.getFacingYaw(), sim.isWindWarning(), sim.isRespawning(), frameDt, settings.colorblindMode);
   if (screenMode === 'playing' || screenMode === 'paused') {
     ui.updateHud(snap, smoothFps, sim.isWindWarning(), (p) => scene.projectToScreen(p));
   }

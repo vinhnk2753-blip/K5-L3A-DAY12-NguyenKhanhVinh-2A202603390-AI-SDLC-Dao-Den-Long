@@ -15,6 +15,7 @@ export const PALETTE = {
   moteHalo: 0xffe58a,
   shadeBody: 0x120a1a,
   shadeRim: 0x7a3cff,
+  shadeRimColorblind: 0x00b3ff,
   shadeStunned: 0x3a3450,
   mayRobe: 0xe8e2d0,
   mayScarfAndCharm: 0xc8102e,

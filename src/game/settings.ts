@@ -1,13 +1,15 @@
 export interface GameSettings {
   volume: number;           // 0.0 .. 1.0
   mouseSensitivity: number; // 0.1 .. 1.0
+  colorblindMode: boolean;  // "Bảng màu dễ phân biệt"
 }
 
 const STORAGE_KEY = 'dao_den_long_settings_v1';
 
 const DEFAULT_SETTINGS: GameSettings = {
   volume: 0.7,
-  mouseSensitivity: 0.3
+  mouseSensitivity: 0.3,
+  colorblindMode: false
 };
 
 export function loadSettings(): GameSettings {
@@ -23,7 +25,8 @@ export function loadSettings(): GameSettings {
       mouseSensitivity:
         typeof parsed.mouseSensitivity === 'number' && Number.isFinite(parsed.mouseSensitivity)
           ? Math.max(0.1, Math.min(1, parsed.mouseSensitivity))
-          : DEFAULT_SETTINGS.mouseSensitivity
+          : DEFAULT_SETTINGS.mouseSensitivity,
+      colorblindMode: typeof parsed.colorblindMode === 'boolean' ? parsed.colorblindMode : DEFAULT_SETTINGS.colorblindMode
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

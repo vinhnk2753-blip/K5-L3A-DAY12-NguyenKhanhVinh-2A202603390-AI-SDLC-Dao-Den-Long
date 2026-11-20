@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { runSimulation } from '../../src/sim/engine.js';
-import type { InputFrame, ScenarioConfig } from '../../src/sim/types.js';
+import type { ScenarioConfig } from '../../src/sim/types.js';
 
 describe('Phase 3 Features — Ticket-03 "Đèn cạn dầu" & Contract v1.2', () => {
   it('decays fuel at 1/60 per tick, refuels using ceil((100-fuel)/10), ignores full lanterns, extinguishes at 0, and relights for 5 motes (+40)', () => {

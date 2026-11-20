@@ -135,6 +135,10 @@ export class UiController {
         <label for="set-sens">Độ nhạy chuột: <strong id="val-sens">${settings.mouseSensitivity.toFixed(2)}</strong></label>
         <input id="set-sens" type="range" min="10" max="100" value="${Math.round(settings.mouseSensitivity * 100)}" />
       </div>
+      <div class="setting-row">
+        <label for="set-cb">Bảng màu dễ phân biệt (Mù màu)</label>
+        <input id="set-cb" type="checkbox" ${settings.colorblindMode ? 'checked' : ''} />
+      </div>
       <div class="btn-row">
         <button id="btn-back" class="btn-primary">Quay lại</button>
       </div>
@@ -142,6 +146,7 @@ export class UiController {
 
     const volInput = document.getElementById('set-vol') as HTMLInputElement;
     const sensInput = document.getElementById('set-sens') as HTMLInputElement;
+    const cbInput = document.getElementById('set-cb') as HTMLInputElement;
     const valVol = document.getElementById('val-vol')!;
     const valSens = document.getElementById('val-sens')!;
 
@@ -153,6 +158,10 @@ export class UiController {
     sensInput.addEventListener('input', () => {
       settings.mouseSensitivity = Number(sensInput.value) / 100;
       valSens.textContent = settings.mouseSensitivity.toFixed(2);
+      onChange({ ...settings });
+    });
+    cbInput.addEventListener('change', () => {
+      settings.colorblindMode = cbInput.checked;
       onChange({ ...settings });
     });
     document.getElementById('btn-back')!.addEventListener('click', onBack);
@@ -251,15 +260,25 @@ export class UiController {
       this.windEl.classList.add('hidden');
     }
 
-    // Night, lanterns, score, FPS
+    // Night, lanterns (show dawn survival threshold), score, FPS
     const lit = snap.lanterns.filter((l) => l.lit).length;
+    const needed = Math.ceil(this.tuning.win_ratio * snap.lanterns.length);
     this.nightEl.textContent = `Đêm ${snap.night}`;
-    this.lanternsEl.textContent = `Đèn: ${lit}/${snap.lanterns.length}`;
+    this.lanternsEl.textContent = `Đèn: ${lit}/${snap.lanterns.length} (≥${needed})`;
     this.scoreEl.textContent = `Điểm: ${snap.score}`;
     this.fpsEl.textContent = `${Math.round(fps)} FPS`;
 
-    // Motes 10-pip bar + Charm badge
-    this.motesLabelEl.textContent = `Đom đóm: ${snap.player.carried}/${this.tuning.carry_capacity}`;
+    // Motes dynamic capacity bar (10..20) + Charm badge
+    const cap = snap.player.capacity;
+    this.motesLabelEl.textContent = `Đom đóm: ${snap.player.carried}/${cap}`;
+    if (this.motesBarEl.children.length !== cap) {
+      this.motesBarEl.innerHTML = '';
+      for (let i = 0; i < cap; i++) {
+        const pip = document.createElement('div');
+        pip.className = 'mote-pip';
+        this.motesBarEl.appendChild(pip);
+      }
+    }
     const pips = this.motesBarEl.children;
     for (let i = 0; i < pips.length; i++) {
       pips[i].classList.toggle('filled', i < snap.player.carried);
@@ -295,34 +314,41 @@ export class UiController {
       this.pulseEl.classList.remove('cooldown');
     }
 
-    // Interact prompt for nearest unlit lantern in interact_radius (2.0m)
-    let nearUnlit = null;
+    // Interact prompt for nearest receivable lantern (unlit OR lit with fuel < 100) in interact_radius (2.0m)
+    let nearReceivable = null;
     let nearDist = Infinity;
-    let nearestAnyUnlit = null;
+    let nearestAnyPriority = null;
     let nearestDist = Infinity;
     for (const l of snap.lanterns) {
-      if (l.lit) continue;
       const d = Math.hypot(snap.player.pos[0] - l.pos[0], snap.player.pos[2] - l.pos[2]);
-      if (d < nearestDist) {
-        nearestDist = d;
-        nearestAnyUnlit = l;
+      if (!l.lit || l.fuel < this.tuning.low_fuel_threshold) {
+        if (d < nearestDist) {
+          nearestDist = d;
+          nearestAnyPriority = l;
+        }
       }
-      if (d <= this.tuning.interact_radius && (d < nearDist - 1e-9 || (Math.abs(d - nearDist) <= 1e-9 && nearUnlit !== null && l.id < nearUnlit.id))) {
+      const canReceive = !l.lit || l.fuel < this.tuning.fuel_max;
+      if (canReceive && d <= this.tuning.interact_radius && (d < nearDist - 1e-9 || (Math.abs(d - nearDist) <= 1e-9 && nearReceivable !== null && l.id < nearReceivable.id))) {
         nearDist = d;
-        nearUnlit = l;
+        nearReceivable = l;
       }
     }
 
-    if (nearUnlit) {
-      this.promptEl.textContent = `E — Nạp ánh sáng (${nearUnlit.deposited}/${this.tuning.lantern_cost})`;
+    if (nearReceivable) {
+      if (nearReceivable.lit) {
+        this.promptEl.textContent = `E — Châm dầu (${nearReceivable.fuel.toFixed(0)}%)`;
+      } else {
+        const cost = nearReceivable.ever_lit ? this.tuning.relight_cost : this.tuning.lantern_cost;
+        this.promptEl.textContent = `E — ${nearReceivable.ever_lit ? 'Thắp lại' : 'Nạp ánh sáng'} (${nearReceivable.deposited}/${cost})`;
+      }
       this.promptEl.classList.remove('hidden');
     } else {
       this.promptEl.classList.add('hidden');
     }
 
-    // Off-screen arrow pointing toward nearest unlit lantern
-    if (nearestAnyUnlit) {
-      const proj = projectFn([nearestAnyUnlit.pos[0], nearestAnyUnlit.pos[1] + 3.0, nearestAnyUnlit.pos[2]]);
+    // Off-screen arrow pointing toward nearest unlit or low-fuel lantern
+    if (nearestAnyPriority) {
+      const proj = projectFn([nearestAnyPriority.pos[0], nearestAnyPriority.pos[1] + 3.0, nearestAnyPriority.pos[2]]);
       if (proj.onScreen) {
         this.arrowEl.classList.add('hidden');
       } else {

@@ -91,6 +91,14 @@ export class AudioEngine {
     this.tone(440, 660, 0.16, 'triangle', 0.14);
   }
 
+  playRefuel(): void {
+    this.tone(520, 740, 0.16, 'sine', 0.14);
+  }
+
+  playLanternOut(): void {
+    this.tone(360, 140, 0.4, 'triangle', 0.16);
+  }
+
   playLanternLit(): void {
     this.tone(440, 440, 0.35, 'triangle', 0.16, 0);
     this.tone(554.37, 554.37, 0.4, 'triangle', 0.16, 0.08);
