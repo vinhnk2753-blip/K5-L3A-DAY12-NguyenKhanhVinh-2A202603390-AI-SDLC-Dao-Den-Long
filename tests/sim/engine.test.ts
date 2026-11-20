@@ -14,11 +14,13 @@ import type { InputFrame, ScenarioConfig } from '../../src/sim/types.js';
  * - All non-replaced Phase 1-2 mechanics (movement, yaw, jump, pulse, shade hit, safe zone >=30 fuel,
  *   determinism) remain strictly verified.
  */
-describe('Contract v1.2 sync', () => {
+describe('Contract v1.3 sync', () => {
   it('matches game.contract.json tuning exactly', () => {
     const raw = readFileSync(path.resolve(process.cwd(), 'game.contract.json'), 'utf8');
     const contract = JSON.parse(raw);
-    expect(contract.contract_version).toBe('1.2');
+    expect(contract.contract_version).toBe('1.3');
+    expect(contract.bench_cmd).toBeTruthy();
+    expect(contract.soak_cmd).toBeTruthy();
     expect(contract.tuning).toEqual(STANDARD_TUNING);
   });
 });
