@@ -1,6 +1,6 @@
 # Đảo Đèn Lồng (v1.0.0) — Day 12 AI SDLC Lab
 
-> **Video demo (< 5 phút):** [Xem video demo trên Release v1.0.0](../../releases/tag/v1.0.0) *(hoặc `docs/demo/demo.mp4` sau khi tải lên)*
+> **Video demo (< 5 phút):** [Xem và tải `demo.mp4` trên Release v1.0.0](../../releases/tag/v1.0.0)
 
 ![Đêm 3 — Đảo Chuông (1280×720, 180 FPS)](docs/proof/phase-2/night3-gameplay-1280x720.png)
 
@@ -61,7 +61,7 @@ Sau lệnh thứ 3 (`node dist-cli/cli/run.js`), mở trình duyệt tại `http
   *(Tự động mở cửa sổ 1280×720 không toàn màn hình bằng Chrome/Chromium/Edge với cờ `--disable-gpu-vsync`, `vsync_off: true`; có thể chỉ định trình duyệt qua biến môi trường `BENCH_BROWSER`.)*
 - **Soak Test 10 Đêm liên tiếp (`soak.json`):**
   ```bash
-  node --expose-gc --max-semi-space-size=4 dist-cli/cli/soak.js --seed 7 --nights 10 --out soak.json
+  node --expose-gc --max-semi-space-size=2 dist-cli/cli/soak.js --seed 7 --nights 10 --out soak.json
   ```
 - **Xuất Bảng xếp hạng cục bộ (Top 10):**
   ```bash

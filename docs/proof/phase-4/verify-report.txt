@@ -30,7 +30,7 @@ computing gzip size...
 [2mdist/[22m[32mindex.html                 [39m[1m[2m  2.30 kB[22m[1m[22m[2m │ gzip:   0.85 kB[22m
 [2mdist/[22m[35massets/index-B-GNGvPE.css  [39m[1m[2m  7.61 kB[22m[1m[22m[2m │ gzip:   2.17 kB[22m
 [2mdist/[22m[36massets/index-CCeFoLRt.js   [39m[1m[33m584.31 kB[39m[22m[2m │ gzip: 154.43 kB[22m
-[32m✓ built in 1.96s[39m
+[32m✓ built in 2.33s[39m
 
 === [GATE] Unit, Regression & Phase 4 Contract Tests ===
 
@@ -40,27 +40,27 @@ computing gzip size...
 
 [1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mC:/Users/sorry/OneDrive/Desktop/VIN_AI/Lab/Lab_Day12/K5-L3A-DAY12-NguyenKhanhVinh-2A202603390-AI-SDLC-Dao-Den-Long[39m
 
- [32m✓[39m tests/sim/leaderboard.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m tests/sim/phase3.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 20[2mms[22m[39m
- [32m✓[39m tests/sim/phase2.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 38[2mms[22m[39m
- [32m✓[39m tests/sim/engine.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 57[2mms[22m[39m
- [32m✓[39m tests/cli/phase4.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 521[2mms[22m[39m
-   [33m[2m✓[22m[39m Phase 4 CLIs — Soak Test & Leaderboard Export[2m > [22mruns soak test for 3 nights with 0 crashes, valid JSON, and bounded memory [33m 346[2mms[22m[39m
- [32m✓[39m tests/cli/headless.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 923[2mms[22m[39m
-   [33m[2m✓[22m[39m Headless CLI Contract v1.1[2m > [22mruns Night 1, 2, 3 cleanly with v1.1 snapshots and deterministic output [33m 823[2mms[22m[39m
+ [32m✓[39m tests/sim/leaderboard.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/sim/phase3.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/sim/phase2.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/sim/engine.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 45[2mms[22m[39m
+ [32m✓[39m tests/cli/phase4.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 436[2mms[22m[39m
+   [33m[2m✓[22m[39m Phase 4 CLIs — Soak Test & Leaderboard Export[2m > [22mruns soak test for 3 nights with 0 crashes, valid JSON, and bounded memory [33m 341[2mms[22m[39m
+ [32m✓[39m tests/cli/headless.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 629[2mms[22m[39m
+   [33m[2m✓[22m[39m Headless CLI Contract v1.1[2m > [22mruns Night 1, 2, 3 cleanly with v1.1 snapshots and deterministic output [33m 550[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
 [2m      Tests [22m [1m[32m31 passed[39m[22m[90m (31)[39m
-[2m   Start at [22m 17:17:04
-[2m   Duration [22m 1.82s[2m (transform 362ms, setup 0ms, collect 1.12s, tests 1.56s, environment 2ms, prepare 1.66s)[22m
+[2m   Start at [22m 17:56:52
+[2m   Duration [22m 1.33s[2m (transform 305ms, setup 0ms, collect 870ms, tests 1.16s, environment 1ms, prepare 1.35s)[22m
 
 
 === [GATE] Contract v1.3, Determinism, Soak Test & Leaderboard Export ===
 Determinism PASS (night 1, 1200 ticks): SHA-256 = f94f14440f54fbb67d4e0a96b2efdc38708a0d458ea5daf64476dbc5f294e32a
 Determinism PASS (night 2, 1200 ticks): SHA-256 = b0d162f378cbcc26e5966e1b3bd1085610f3034964b95f5aab147d8e66009be0
 Determinism PASS (night 3, 1200 ticks): SHA-256 = fe7556ad6ecb3c2e4eae1c283a8beaed84563a835f6ad2aea4c4d398e51127b5
-Soak Test PASS (10 nights, crashes=0, mem 52.1 -> 52 MB, 0.5s)
-Leaderboard Export PASS (0 entries)
+Soak Test PASS (10 nights, crashes=0, mem 49.3 -> 49.8 MB, 0.4s)
+Leaderboard Export PASS (4 entries)
 Malformed inputs exit-code check PASS (exit code 2)
 
 [GATE PASSED] All Phase 4 v1.0.0 verification checks succeeded.
