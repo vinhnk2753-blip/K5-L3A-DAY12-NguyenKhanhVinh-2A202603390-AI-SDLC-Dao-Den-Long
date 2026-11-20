@@ -1,0 +1,8 @@
+{
+  "player": { "pos": [0, 0, 0], "carried": 5, "flames": 1 },
+  "random_motes": false,
+  "random_shades": false,
+  "motes": [],
+  "shades": [{ "id": "S1", "pos": [2, 0, 0] }],
+  "time_left_s": 120
+}
