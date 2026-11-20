@@ -5,9 +5,11 @@ export class InputController {
   private camYawDeg = 0;
   private dragging = false;
   private lastMouseX = 0;
-  private mouseSensitivity = 0.25;
+  private mouseSensitivity = 0.3;
+  private pauseQueued = false;
 
-  constructor(private readonly canvas: HTMLCanvasElement) {
+  constructor(private readonly canvas: HTMLCanvasElement, sensitivity = 0.3) {
+    this.mouseSensitivity = sensitivity;
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     this.canvas.addEventListener('mousedown', this.onMouseDown);
@@ -15,7 +17,18 @@ export class InputController {
     window.addEventListener('mousemove', this.onMouseMove);
   }
 
+  setMouseSensitivity(s: number): void {
+    this.mouseSensitivity = s;
+  }
+
+  resetCamYaw(): void {
+    this.camYawDeg = 0;
+  }
+
   private onKeyDown = (e: KeyboardEvent): void => {
+    if (!e.repeat && (e.code === 'Escape' || e.code === 'KeyP')) {
+      this.pauseQueued = true;
+    }
     this.keys.add(e.code);
   };
 
@@ -35,12 +48,13 @@ export class InputController {
   };
 
   private onMouseMove = (e: MouseEvent): void => {
+    const scale = this.mouseSensitivity * 0.8;
     if (document.pointerLockElement === this.canvas) {
-      this.camYawDeg -= e.movementX * this.mouseSensitivity;
+      this.camYawDeg -= e.movementX * scale;
     } else if (this.dragging) {
       const dx = e.clientX - this.lastMouseX;
       this.lastMouseX = e.clientX;
-      this.camYawDeg -= dx * this.mouseSensitivity;
+      this.camYawDeg -= dx * scale;
     }
   };
 
@@ -48,12 +62,16 @@ export class InputController {
     return this.camYawDeg;
   }
 
-  poll(): LiveInputState {
+  consumePauseToggle(): boolean {
+    const p = this.pauseQueued;
+    this.pauseQueued = false;
+    return p;
+  }
+
+  poll(pauseSignal = false): LiveInputState {
     if (this.keys.has('ArrowLeft')) this.camYawDeg += 2.2;
     if (this.keys.has('ArrowRight')) this.camYawDeg -= 2.2;
 
-    // With camera positioned behind player looking toward +Z when yaw=0:
-    // W moves forward (+Z), S moves backward (-Z), A moves left (+X), D moves right (-X)
     let mx = 0;
     let mz = 0;
     if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) mz += 1;
@@ -66,7 +84,9 @@ export class InputController {
       cam_yaw_deg: this.camYawDeg,
       jump: this.keys.has('Space'),
       interact: this.keys.has('KeyE'),
-      pulse: this.keys.has('KeyQ') || this.keys.has('KeyF')
+      pulse: this.keys.has('KeyQ') || this.keys.has('KeyF'),
+      dash: this.keys.has('ShiftLeft') || this.keys.has('ShiftRight'),
+      pause: pauseSignal
     };
   }
 
