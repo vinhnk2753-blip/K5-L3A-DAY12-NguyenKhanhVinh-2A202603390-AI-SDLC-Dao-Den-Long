@@ -140,7 +140,10 @@ export function validateScenario(raw: unknown): ScenarioConfig {
         throw new ContractValidationError(`scenario.shades[${idx}] must be an object`);
       }
       const pos = assertVec3(s.pos, `scenario.shades[${idx}].pos`);
-      const id = s.id !== undefined ? String(s.id) : undefined;
+      if (s.id !== undefined && typeof s.id !== 'string') {
+        throw new ContractValidationError(`scenario.shades[${idx}].id must be a string`);
+      }
+      const id = s.id;
       return { id, pos };
     });
   }

@@ -242,9 +242,9 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
     return null;
   }
 
-  function enforceSafeZonesForShade(s: InternalShade): void {
+  function enforceSafeZonesForShade(s: InternalShade, excludeLanternId?: string | null): void {
     for (const l of lanterns) {
-      if (!l.lit) continue;
+      if (!l.lit || l.id === excludeLanternId) continue;
       const dx = s.pos[0] - l.pos[0];
       const dz = s.pos[2] - l.pos[2];
       const d = Math.hypot(dx, dz);
@@ -461,6 +461,8 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
             if (s.safePushTicksLeft <= 0) {
               enforceSafeZonesForShade(s);
               s.safePushLanternId = null;
+            } else {
+              enforceSafeZonesForShade(s, s.safePushLanternId);
             }
           }
         }
@@ -474,7 +476,7 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
       playerCarried -= tuning.pulse_cost;
       pulseCdTicks = Math.round(tuning.pulse_cooldown_s * TICK_RATE);
       const stunnedIds: string[] = [];
-      const sortedShades = [...shades].sort((a, b) => a.id.localeCompare(b.id));
+      const sortedShades = [...shades].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
       for (const s of sortedShades) {
         if (s.state === 'spawning') continue;
         if (distXZ(playerPos, s.pos) <= tuning.pulse_radius) {
@@ -568,7 +570,7 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
 
     // 9. Shade hits (ascending id order, max 1 flame lost per tick)
     if (invulnTicks === 0) {
-      const sortedShades = [...shades].sort((a, b) => a.id.localeCompare(b.id));
+      const sortedShades = [...shades].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
       for (const s of sortedShades) {
         if (s.state !== 'chase' && s.state !== 'wander') continue;
         if (s.safePushTicksLeft > 0) continue;

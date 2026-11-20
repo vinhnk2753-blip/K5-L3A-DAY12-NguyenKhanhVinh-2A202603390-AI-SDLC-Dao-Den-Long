@@ -46,18 +46,18 @@ function parseArgs(argv: string[]): CliArgs {
         break;
       case '--scenario':
         scenarioPath = argv[++i];
-        if (!scenarioPath) throw new Error('Missing path for --scenario');
+        if (!scenarioPath || scenarioPath.startsWith('--')) throw new Error('Missing path for --scenario');
         break;
       case '--inputs':
         inputsPath = argv[++i];
-        if (!inputsPath) throw new Error('Missing path for --inputs');
+        if (!inputsPath || inputsPath.startsWith('--')) throw new Error('Missing path for --inputs');
         break;
       case '--ticks':
         ticks = parseIntArg('--ticks', argv[++i]);
         break;
       case '--out':
         outPath = argv[++i];
-        if (!outPath) throw new Error('Missing path for --out');
+        if (!outPath || outPath.startsWith('--')) throw new Error('Missing path for --out');
         break;
       case '--snapshot-every':
         snapshotEvery = parseIntArg('--snapshot-every', argv[++i]);
