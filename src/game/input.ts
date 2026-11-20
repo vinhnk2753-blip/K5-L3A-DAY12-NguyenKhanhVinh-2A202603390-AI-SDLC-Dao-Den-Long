@@ -1,4 +1,5 @@
 import type { LiveInputState } from '../sim/types.js';
+import { DEFAULT_KEYBINDS, type KeyBindings } from './settings.js';
 
 export class InputController {
   private keys = new Set<string>();
@@ -6,10 +7,13 @@ export class InputController {
   private dragging = false;
   private lastMouseX = 0;
   private mouseSensitivity = 0.3;
+  private keybinds: KeyBindings = { ...DEFAULT_KEYBINDS };
   private pauseQueued = false;
+  private capturingKey = false;
 
-  constructor(private readonly canvas: HTMLCanvasElement, sensitivity = 0.3) {
+  constructor(private readonly canvas: HTMLCanvasElement, sensitivity = 0.3, keybinds: KeyBindings = DEFAULT_KEYBINDS) {
     this.mouseSensitivity = sensitivity;
+    this.keybinds = { ...keybinds };
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     this.canvas.addEventListener('mousedown', this.onMouseDown);
@@ -21,12 +25,24 @@ export class InputController {
     this.mouseSensitivity = s;
   }
 
+  setKeybinds(kb: KeyBindings): void {
+    this.keybinds = { ...kb };
+  }
+
+  setCapturingKey(flag: boolean): void {
+    this.capturingKey = flag;
+  }
+
   resetCamYaw(): void {
     this.camYawDeg = 0;
   }
 
   private onKeyDown = (e: KeyboardEvent): void => {
-    if (!e.repeat && (e.code === 'Escape' || e.code === 'KeyP')) {
+    if (this.capturingKey) return;
+    const tag = (e.target as HTMLElement | null)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+    if (!e.repeat && (e.code === this.keybinds.pause || e.code === 'KeyP')) {
       this.pauseQueued = true;
     }
     this.keys.add(e.code);
@@ -74,18 +90,22 @@ export class InputController {
 
     let mx = 0;
     let mz = 0;
-    if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) mz += 1;
-    if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) mz -= 1;
-    if (this.keys.has('KeyA')) mx += 1;
-    if (this.keys.has('KeyD')) mx -= 1;
+    if (this.keys.has(this.keybinds.moveUp) || this.keys.has('ArrowUp')) mz += 1;
+    if (this.keys.has(this.keybinds.moveDown) || this.keys.has('ArrowDown')) mz -= 1;
+    if (this.keys.has(this.keybinds.moveLeft)) mx += 1;
+    if (this.keys.has(this.keybinds.moveRight)) mx -= 1;
+
+    const dashDown =
+      this.keys.has(this.keybinds.dash) ||
+      (this.keybinds.dash === 'ShiftLeft' && this.keys.has('ShiftRight'));
 
     return {
       move: [mx, mz],
       cam_yaw_deg: this.camYawDeg,
-      jump: this.keys.has('Space'),
-      interact: this.keys.has('KeyE'),
-      pulse: this.keys.has('KeyQ') || this.keys.has('KeyF'),
-      dash: this.keys.has('ShiftLeft') || this.keys.has('ShiftRight'),
+      jump: this.keys.has(this.keybinds.jump),
+      interact: this.keys.has(this.keybinds.interact),
+      pulse: this.keys.has(this.keybinds.pulse),
+      dash: dashDown,
       pause: pauseSignal
     };
   }

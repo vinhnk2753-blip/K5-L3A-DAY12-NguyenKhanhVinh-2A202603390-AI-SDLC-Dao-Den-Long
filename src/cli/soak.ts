@@ -54,10 +54,41 @@ function rssMb(): number {
 function main(): void {
   try {
     const args = parseArgs(process.argv.slice(2));
+    // Warm up V8 JIT & young-gen heap across all 3 nights so RSS measures true leak stability
+    {
+      const warmInput: LiveInputState = {
+        move: [1, 0],
+        cam_yaw_deg: 0,
+        jump: false,
+        dash: false,
+        pulse: false,
+        interact: false,
+        pause: false
+      };
+      for (const wn of [1, 2, 3] as NightNumber[]) {
+        const warm = createSimulation({ seed: 100 + wn, night: wn });
+        for (let w = 0; w < 600; w++) {
+          warmInput.jump = w % 20 === 0;
+          warmInput.dash = w % 35 === 0;
+          warmInput.interact = w % 10 === 0;
+          warm.step(warmInput);
+        }
+      }
+    }
+
     const t0 = performance.now();
     const results: Array<'won' | 'lost'> = [];
     let crashes = 0;
     let memStartMb = 0;
+    const input: LiveInputState = {
+      move: [0, 0],
+      cam_yaw_deg: 0,
+      jump: false,
+      dash: false,
+      pulse: false,
+      interact: false,
+      pause: false
+    };
 
     for (let i = 0; i < args.nights; i++) {
       const night = ((i % 3) + 1) as NightNumber;
@@ -71,9 +102,6 @@ function main(): void {
         }
 
         const inputRng = createRng((nightSeed ^ 0x9e3779b9) >>> 0);
-        let moveX = 0;
-        let moveZ = 0;
-        let camYaw = 0;
 
         for (let t = 0; t < maxTicks; t++) {
           if (sim.getState() === 'won' || sim.getState() === 'lost') break;
@@ -81,20 +109,16 @@ function main(): void {
           if (t % 30 === 0) {
             const angle = inputRng.range(0, Math.PI * 2);
             const mag = inputRng.next() < 0.1 ? 0 : 1;
-            moveX = Math.cos(angle) * mag;
-            moveZ = Math.sin(angle) * mag;
-            camYaw = inputRng.range(0, 360);
+            input.move[0] = Math.cos(angle) * mag;
+            input.move[1] = Math.sin(angle) * mag;
+            input.cam_yaw_deg = inputRng.range(0, 360);
           }
 
-          const input: LiveInputState = {
-            move: [moveX, moveZ],
-            cam_yaw_deg: camYaw,
-            jump: inputRng.next() < 0.05,
-            dash: inputRng.next() < 0.03,
-            pulse: inputRng.next() < 0.02,
-            interact: inputRng.next() < 0.1,
-            pause: false
-          };
+          input.jump = inputRng.next() < 0.05;
+          input.dash = inputRng.next() < 0.03;
+          input.pulse = inputRng.next() < 0.02;
+          input.interact = inputRng.next() < 0.1;
+          input.pause = false;
 
           sim.step(input);
         }

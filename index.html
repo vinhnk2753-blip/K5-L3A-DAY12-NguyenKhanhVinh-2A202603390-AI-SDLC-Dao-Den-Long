@@ -3,23 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Đảo Đèn Lồng — Ba Hòn Đảo</title>
+    <title>Đảo Đèn Lồng v1.0.0 — Bình Minh</title>
   </head>
   <body>
     <div id="app">
       <canvas id="game-canvas"></canvas>
+      <div id="hit-flash" class="hit-flash hidden"></div>
 
       <div id="hud" class="hud hidden">
         <div class="hud-top">
           <div class="hud-box hud-flames" id="hud-flames" aria-label="Ngọn Lửa"></div>
           <div class="hud-center-col">
-            <div class="hud-box hud-timer" id="hud-timer">05:00</div>
-            <div class="hud-wind hidden" id="hud-wind"></div>
+            <div class="hud-box hud-timer" id="hud-timer">04:00</div>
+            <div class="hud-captions" id="hud-captions" aria-live="polite"></div>
           </div>
           <div class="hud-box hud-stats">
             <span id="hud-night">Đêm 1</span>
             <span class="sep">·</span>
-            <span id="hud-lanterns">Đèn: 0/5</span>
+            <span id="hud-lanterns">Đèn: 0/5 (≥3)</span>
             <span class="sep">·</span>
             <span id="hud-score">Điểm: 0</span>
             <span class="sep">·</span>
@@ -28,7 +29,8 @@
         </div>
 
         <div class="hud-prompt hidden" id="hud-prompt"></div>
-        <div class="lantern-arrow hidden" id="hud-arrow" title="Đèn chưa sáng gần nhất">➤</div>
+        <div class="lantern-arrow hidden" id="hud-arrow" title="Đèn ưu tiên gần nhất">➤</div>
+        <div class="shade-arrow hidden" id="hud-shade-arrow" title="Bóng Mực vừa xuất hiện">⚠</div>
 
         <div class="hud-bottom">
           <div class="hud-box hud-motes">

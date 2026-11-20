@@ -635,7 +635,8 @@ export class GameScene {
     windWarning: boolean,
     respawning: boolean,
     dt: number,
-    colorblindMode = false
+    colorblindMode = false,
+    shakeIntensity = 0
   ): void {
     this.animTime += dt;
     if (this.loadedNight !== snapshot.night) {
@@ -825,14 +826,16 @@ export class GameScene {
       g.position.set(centerX + Math.cos(a) * dist, baseY + Math.sin(this.animTime * 0.9 + phase) * 1.1, Math.sin(a) * dist);
     }
 
-    // Camera
+    // Camera (with optional hit shake disabled in reducedMotion mode)
     const yawRad = (camYawDeg * Math.PI) / 180;
     const camDist = 11.0;
     const camHeight = 5.6;
     const targetY = Math.max(-2, snapshot.player.pos[1]);
+    const shakeX = shakeIntensity > 0 ? Math.sin(this.animTime * 65) * shakeIntensity : 0;
+    const shakeY = shakeIntensity > 0 ? Math.cos(this.animTime * 73) * shakeIntensity * 0.6 : 0;
     this.camera.position.set(
-      snapshot.player.pos[0] - Math.sin(yawRad) * camDist,
-      targetY + camHeight,
+      snapshot.player.pos[0] - Math.sin(yawRad) * camDist + shakeX,
+      targetY + camHeight + shakeY,
       snapshot.player.pos[2] - Math.cos(yawRad) * camDist
     );
     this.camera.lookAt(snapshot.player.pos[0], targetY + 1.2, snapshot.player.pos[2]);

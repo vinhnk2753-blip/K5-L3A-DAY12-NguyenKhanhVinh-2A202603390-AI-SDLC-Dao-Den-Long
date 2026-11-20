@@ -633,12 +633,12 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
     }
 
     // Lantern fuel decay + draining shades (integer 1/60 units)
-    const sortedShadesForDrain = [...shades].sort(cmpId);
+    if (shades.length > 1) shades.sort(cmpId);
     for (const l of lanterns) {
       if (!l.lit) continue;
       l.fuelTicks -= FUEL_DECAY_PER_TICK;
 
-      for (const s of sortedShadesForDrain) {
+      for (const s of shades) {
         if (s.state === 'drain' && s.targetLanternId === l.id) {
           l.fuelTicks -= FUEL_DRAIN_PER_TICK;
           s.drainTickCounter += 1;
@@ -817,8 +817,8 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
         }
       }
 
-      const sortedCharms = [...charms].sort(cmpId);
-      for (const c of sortedCharms) {
+      if (charms.length > 1) charms.sort(cmpId);
+      for (const c of charms) {
         if (!c.available) continue;
         if (distXZ(playerPos, c.pos) <= tuning.pickup_radius && Math.abs(playerPos[1] - c.pos[1]) <= 1.5) {
           c.available = false;
@@ -1223,8 +1223,8 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
 
     // 9. Contacts: Drifters steal first, then Shades hit
     if (respawnTicks === 0) {
-      const sortedDrifters = [...drifters].sort(cmpId);
-      for (const d of sortedDrifters) {
+      if (drifters.length > 1) drifters.sort(cmpId);
+      for (const d of drifters) {
         if (tick < d.activeFromTick) continue;
         if (d.state !== 'chase' || d.hasStolen) continue;
         if (distXZ(playerPos, d.pos) <= DRIFTER_STEAL_RADIUS) {
@@ -1239,8 +1239,8 @@ export function createSimulation(options: SimulationOptions): SimulationInstance
       }
 
       if (invulnTicks === 0) {
-        const sortedShades = [...shades].sort(cmpId);
-        for (const s of sortedShades) {
+        if (shades.length > 1) shades.sort(cmpId);
+        for (const s of shades) {
           if (tick < s.activeFromTick) continue;
           if (s.state !== 'chase' && s.state !== 'wander') continue;
           if (s.safePushTicksLeft > 0) continue;
